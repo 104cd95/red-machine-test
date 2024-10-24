@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Camera;
 using Events;
 using Player;
 using Player.ActionHandlers;
@@ -36,6 +37,14 @@ namespace Connection
                 nodeTarget.TargetCompletionChangeEvent += OnTargetCompletionChange;
                 _completionsByTargetNode[nodeTarget] = nodeTarget.IsCompleted;
             }
+            
+            // Set the camera bounds to fit all nodes in the level
+            Bounds cameraBounds = new Bounds();
+            foreach (var node in _nodes)
+            {
+                cameraBounds.Encapsulate(node.transform.position);
+            }
+            CameraHolder.Instance.SetBounds(cameraBounds);
 
             _clickHandler = ClickHandler.Instance;
             _clickHandler.SetDragEventHandlers(OnDragStart, OnDragEnd);

@@ -1,6 +1,7 @@
 using System;
 using Camera;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Utils.Singleton;
 
 
@@ -14,6 +15,7 @@ namespace Player.ActionHandlers
         public event Action<Vector3> ClickEvent;
         public event Action<Vector3> PointerUpEvent;
         public event Action<Vector3> DragStartEvent;
+        public event Action<Vector3> DragEvent;
         public event Action<Vector3> DragEndEvent;
 
         private Vector3 _pointerDownPosition;
@@ -25,7 +27,8 @@ namespace Player.ActionHandlers
 
         private void Update()
         {
-            if (Input.GetMouseButtonDown(0))
+            // To prevent dragging when the mouse is over the UI, check for this in EventSystem
+            if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
             {
                 _isClick = true;
                 _clickHoldDuration = .0f;
@@ -59,6 +62,15 @@ namespace Player.ActionHandlers
 
         private void LateUpdate()
         {
+            if (_isDrag)
+            {
+                // Pass the mouse position delta in world coordinates to DragEvent subscribers
+                Vector3 pointerPosition = CameraHolder.Instance.MainCamera.ScreenToWorldPoint(Input.mousePosition);
+                Vector3 pointerPositionDelta = _pointerDownPosition - pointerPosition;
+                _pointerDownPosition = pointerPosition;
+                DragEvent?.Invoke(pointerPositionDelta);
+            }
+            
             if (!_isClick)
                 return;
 
